@@ -1,0 +1,25 @@
+import java_cup.runtime.*;
+
+terminal NEWLINE, PIPE, SEMI;
+terminal String IDENT;
+
+non terminal Object line;
+non terminal Object cmd_list;
+non terminal Object command;
+
+start with line;
+
+
+line ::=
+      cmd_list NEWLINE
+    | NEWLINE
+    ;
+
+cmd_list ::=
+      command
+    | cmd_list SEMI command
+    ;
+
+command ::=
+      IDENT
+    ;
