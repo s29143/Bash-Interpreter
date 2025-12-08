@@ -22,7 +22,7 @@ import java_cup.runtime.Symbol;
 
 WHITESPACE = [ \t\f]+
 NEWLINE    = \r\n|\r|\n
-IDENT      = [a-zA-Z_][a-zA-Z0-9_-]*
+IDENT      = [^ \t\f\r\n;|]+
 
 %%
 

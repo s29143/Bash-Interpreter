@@ -1,4 +1,5 @@
 import java_cup.runtime.*;
+import java.util.*;
 
 terminal NEWLINE, PIPE, SEMI;
 terminal String IDENT;
@@ -6,9 +7,9 @@ terminal String IDENT;
 non terminal Object line;
 non terminal Object cmd_list;
 non terminal Object command;
+non terminal List<String> args;
 
 start with line;
-
 
 line ::=
       cmd_list NEWLINE
@@ -21,5 +22,20 @@ cmd_list ::=
     ;
 
 command ::=
-      IDENT
+      IDENT:cmd args:a
+        {:
+            CommandExecutor.execute(cmd, a);
+            RESULT = null;
+        :}
+    ;
+
+args ::=
+        {:
+            RESULT = new ArrayList<String>();
+        :}
+    | args:a IDENT:i
+        {:
+            a.add(i);
+            RESULT = a;
+        :}
     ;
