@@ -17,7 +17,7 @@ public class CommandExecutor {
         }
 
         boolean append = redirect.append();
-        String filename = redirect.filename();
+        String filename = "out" + File.separator + redirect.filename();
 
         try (PrintStream out = new PrintStream(
                 new FileOutputStream(filename, append),
@@ -34,6 +34,7 @@ public class CommandExecutor {
             case "echo" -> echo(args, out);
             case "ls" -> ls(args, out);
             case "cat" -> cat(args, out);
+            case "wc" -> wc(args, out);
             default -> out.println("Unknown command: " + cmd);
         }
     }
@@ -70,6 +71,20 @@ public class CommandExecutor {
                 while ((line = br.readLine()) != null) {
                     out.println(line);
                 }
+            } catch(IOException e) {
+                out.println("Cannot open file: " + arg);
+            }
+        }
+    }
+
+    private static void wc(List<String> args, PrintStream out) {
+        if(args.isEmpty()) {
+            out.println("Usage: wc [filename]");
+            return;
+        }
+        for(String arg : args) {
+            try (BufferedReader br = new BufferedReader(new FileReader(arg))) {
+                out.println(br.readAllLines().size());
             } catch(IOException e) {
                 out.println("Cannot open file: " + arg);
             }
