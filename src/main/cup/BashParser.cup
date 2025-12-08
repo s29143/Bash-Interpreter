@@ -1,13 +1,14 @@
 import java_cup.runtime.*;
 import java.util.*;
 
-terminal NEWLINE, PIPE, SEMI;
+terminal NEWLINE, PIPE, SEMI, REDIR, APPEND;
 terminal String IDENT;
 
 non terminal Object line;
 non terminal Object cmd_list;
 non terminal Object command;
 non terminal List<String> args;
+non terminal RedirectInfo redir;
 
 start with line;
 
@@ -22,11 +23,11 @@ cmd_list ::=
     ;
 
 command ::=
-      IDENT:cmd args:a
-        {:
-            CommandExecutor.execute(cmd, a);
-            RESULT = null;
-        :}
+        IDENT:cmd args:a redir:r
+          {:
+              CommandExecutor.execute(cmd, a, r);
+              RESULT = null;
+          :}
     ;
 
 args ::=
@@ -37,5 +38,18 @@ args ::=
         {:
             a.add(i);
             RESULT = a;
+        :}
+    ;
+redir ::=
+        {:
+            RESULT = null;
+        :}
+    | REDIR IDENT:file
+        {:
+            RESULT = new RedirectInfo(file, false);
+        :}
+    | APPEND IDENT:file
+        {:
+            RESULT = new RedirectInfo(file, true);
         :}
     ;

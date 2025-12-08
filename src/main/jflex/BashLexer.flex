@@ -22,7 +22,7 @@ import java_cup.runtime.Symbol;
 
 WHITESPACE = [ \t\f]+
 NEWLINE    = \r\n|\r|\n
-IDENT      = [^ \t\f\r\n;|]+
+IDENT      = [^ \t\f\r\n;|>]+
 
 %%
 
@@ -35,3 +35,6 @@ IDENT      = [^ \t\f\r\n;|]+
 {IDENT}        { return symbol(sym.IDENT, yytext()); }
 
 <<EOF>>        { return symbol(sym.EOF); }
+
+">>"           { return symbol(sym.APPEND); }
+">"            { return symbol(sym.REDIR); }

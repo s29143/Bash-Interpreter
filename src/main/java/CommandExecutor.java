@@ -1,25 +1,48 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.io.IOException;
 import java.util.List;
 
 public class CommandExecutor {
 
+
     public static void execute(String cmd, List<String> args) {
-        switch (cmd) {
-            case "echo" -> echo(args);
-            case "ls" -> ls(args);
-            case "cat" -> cat(args);
-            default -> System.out.println("Unknown command: " + cmd);
+        execute(cmd, args, null);
+    }
+
+    public static void execute(String cmd, List<String> args, RedirectInfo redirect) {
+        if (redirect == null) {
+            runCommand(cmd, args, System.out);
+            return;
+        }
+
+        boolean append = redirect.append();
+        String filename = redirect.filename();
+
+        try (PrintStream out = new PrintStream(
+                new FileOutputStream(filename, append),
+                true,
+                StandardCharsets.UTF_8)) {
+            runCommand(cmd, args, out);
+        } catch (IOException e) {
+            System.out.println("redirect error: " + e.getMessage());
         }
     }
 
-    private static void echo(List<String> args) {
-        System.out.println(String.join(" ", args));
+    private static void runCommand(String cmd, List<String> args, PrintStream out) {
+        switch(cmd) {
+            case "echo" -> echo(args, out);
+            case "ls" -> ls(args, out);
+            case "cat" -> cat(args, out);
+            default -> out.println("Unknown command: " + cmd);
+        }
     }
 
-    private static void ls(List<String> args) {
+    private static void echo(List<String> args, PrintStream out) {
+        out.println(String.join(" ", args));
+    }
+
+    private static void ls(List<String> args, PrintStream out) {
         Path dir;
         if (args.isEmpty()) {
             dir = Paths.get(".");
@@ -29,25 +52,27 @@ public class CommandExecutor {
 
         try (var stream = Files.newDirectoryStream(dir)) {
             for (Path p : stream) {
-                System.out.println(p.getFileName().toString());
+                out.println(p.getFileName().toString());
             }
         } catch (IOException e) {
-            System.out.println("ls: " + e.getMessage());
+            out.println("ls: " + e.getMessage());
         }
     }
 
-    private static void cat(List<String> args) {
+    private static void cat(List<String> args, PrintStream out) {
         if(args.isEmpty()) {
-            System.out.println("Usage: cat [filename]");
+            out.println("Usage: cat [filename]");
             return;
         }
         for(String arg : args) {
-            try(BufferedReader bufferedReader = new BufferedReader(new FileReader(arg))) {
-                System.out.println(String.join(" ", bufferedReader.readAllAsString()));
+            try (BufferedReader br = new BufferedReader(new FileReader(arg))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    out.println(line);
+                }
             } catch(IOException e) {
-                System.out.println("Cannot open file: " + arg);
+                out.println("Cannot open file: " + arg);
             }
-
         }
     }
 }
