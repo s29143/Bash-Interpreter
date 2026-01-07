@@ -6,7 +6,11 @@ terminal String IDENT;
 
 non terminal Object line;
 non terminal Object cmd_list;
+
 non terminal Object command;
+non terminal List<CommandExecutor.SimpleCommand> pipeline;
+non terminal CommandExecutor.SimpleCommand simple_cmd;
+
 non terminal List<String> args;
 non terminal RedirectInfo redir;
 
@@ -23,33 +27,55 @@ cmd_list ::=
     ;
 
 command ::=
-        IDENT:cmd args:a redir:r
-          {:
-              CommandExecutor.execute(cmd, a, r);
-              RESULT = null;
-          :}
+      pipeline:p redir:r
+      {:
+          CommandExecutor.executePipeline(p, r);
+          RESULT = null;
+      :}
+    ;
+
+pipeline ::=
+      simple_cmd:c
+      {:
+          List<CommandExecutor.SimpleCommand> l = new ArrayList<>();
+          l.add(c);
+          RESULT = l;
+      :}
+    | pipeline:p PIPE simple_cmd:c
+      {:
+          p.add(c);
+          RESULT = p;
+      :}
+    ;
+
+simple_cmd ::=
+      IDENT:cmd args:a
+      {:
+          RESULT = new CommandExecutor.SimpleCommand(cmd, a);
+      :}
     ;
 
 args ::=
-        {:
-            RESULT = new ArrayList<String>();
-        :}
+      {:
+          RESULT = new ArrayList<String>();
+      :}
     | args:a IDENT:i
-        {:
-            a.add(i);
-            RESULT = a;
-        :}
+      {:
+          a.add(i);
+          RESULT = a;
+      :}
     ;
+
 redir ::=
-        {:
-            RESULT = null;
-        :}
+      {:
+          RESULT = null;
+      :}
     | REDIR IDENT:file
-        {:
-            RESULT = new RedirectInfo(file, false);
-        :}
+      {:
+          RESULT = new RedirectInfo(file, false);
+      :}
     | APPEND IDENT:file
-        {:
-            RESULT = new RedirectInfo(file, true);
-        :}
+      {:
+          RESULT = new RedirectInfo(file, true);
+      :}
     ;
